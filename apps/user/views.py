@@ -1,13 +1,16 @@
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.exceptions import APIException
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from django.conf import settings
 import datetime
 import logging
+import smtplib
 from django.utils import timezone
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -16,6 +19,8 @@ from django.utils.decorators import method_decorator
 from core.error_codes import AUTH_INVALID_CREDENTIALS, error_response
 
 from .models import UserProfile, EmailVerificationCode
+from .roles import available_roles
+from .authentication import authenticate_login_id
 from .serializers import (
     AvatarUploadSerializer,
     UserProfileSerializer,
@@ -57,19 +62,28 @@ def send_verification_code(email, purpose, subject, message_template):
         message_template: Message format with {code} placeholder
     """
     code = get_random_string(length=6, allowed_chars='0123456789')
-    EmailVerificationCode.objects.create(
+    verification = EmailVerificationCode.objects.create(
         email=email,
         code=code,
         purpose=purpose,
     )
 
     message = message_template.format(code=code)
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email],
-    )
+    try:
+        sent = send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+        )
+        if sent != 1:
+            raise smtplib.SMTPException('Email delivery was not accepted')
+    except (smtplib.SMTPException, OSError):
+        verification.delete()
+        logger.error('Verification email delivery failed')
+        error = APIException('验证码邮件暂时无法发送，请稍后重试。', code='email_unavailable')
+        error.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        raise error from None
     return code
 
 class SendRegisterCodeView(APIView):
@@ -142,6 +156,7 @@ class LoginView(APIView):
 
     def post(self, request):
         warn_login_throttle_enabled()
+        SessionAuthentication().enforce_csrf(request)
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -149,11 +164,20 @@ class LoginView(APIView):
         password = serializer.validated_data['password']
         remember_me = serializer.validated_data.get('remember_me', False)
 
-        user = authenticate(request, username=student_id, password=password)
+        user = authenticate_login_id(request, student_id, password)
         if not user:
             return error_response(AUTH_INVALID_CREDENTIALS)
 
+        try:
+            profile = user.profile
+        except UserProfile.DoesNotExist:
+            return Response({'detail': '账号资料未配置，请联系管理员。'}, status=status.HTTP_403_FORBIDDEN)
+        role = serializer.validated_data.get('role', profile.role)
+        if role not in available_roles(profile):
+            return Response({'detail': '当前账号没有所选身份的权限。'}, status=status.HTTP_403_FORBIDDEN)
+
         login(request, user)
+        request.session['active_role'] = role
 
         if remember_me:
             request.session.set_expiry(60 * 60 * 24 * 14)  # 14 days
@@ -163,7 +187,6 @@ class LoginView(APIView):
         return Response(
             {
                 "detail": "Login successful",
-                "session_id": request.session.session_key,
             },
             status=status.HTTP_200_OK,
         )
@@ -307,7 +330,7 @@ class AvatarUploadView(APIView):
     def put(self, request):
         serializer = AvatarUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        profile = request.user.profile
+        profile, _ = UserProfile.objects.get_or_create(user=request.user, defaults={"student_id": request.user.username})
 
         if profile.avatar:
             profile.avatar.delete(save=False)
@@ -318,7 +341,7 @@ class AvatarUploadView(APIView):
         return Response(
             {
                 "detail": "Avatar uploaded successfully",
-                "avatar_url": request.build_absolute_uri(profile.avatar.url),
+                "avatar_url": profile.avatar.url,
             },
             status=status.HTTP_200_OK,
         )

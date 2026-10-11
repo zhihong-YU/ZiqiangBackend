@@ -1,4 +1,5 @@
 import uuid
+from tempfile import TemporaryDirectory
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -11,9 +12,13 @@ from apps.user.models import UserProfile
 from .models import FileAuditLog, FileTemplate, ManagedFile
 
 
-@override_settings(MEDIA_ROOT="e:/involuntary/works/ziqiangPlatform/media/test")
 class FileAPITestCase(TestCase):
     def setUp(self):
+        media = TemporaryDirectory()
+        self.addCleanup(media.cleanup)
+        override = override_settings(MEDIA_ROOT=media.name)
+        override.enable()
+        self.addCleanup(override.disable)
         self.client = APIClient()
 
         self.user = User.objects.create_user(

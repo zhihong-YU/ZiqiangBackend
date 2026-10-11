@@ -1,0 +1,7 @@
+[Unit]
+Description=Back up Ziqiang PostgreSQL, uploads and configuration
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /opt/ZQbackend/deploy/backup.sh

@@ -1,0 +1,1359 @@
+{
+  "date": "2026-10-11",
+  "target": "https://ziqiangkexie.cn",
+  "http_check_records": 174,
+  "initial_pass_records": 167,
+  "resolved_historical_records": 7,
+  "unresolved_records": 0,
+  "postgresql_regression_tests": 90,
+  "postgresql_result": "passed",
+  "frontend_build": "passed",
+  "frontend_lint": "passed",
+  "checks": [
+    {
+      "name": "管理员创建独立测试管理员账号",
+      "method": "POST",
+      "path": "/api/admin/users/create/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "测试管理员登录与仪表盘",
+      "method": "GET",
+      "path": "/api/admin/dashboard/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "重复邮箱拒绝注册验证码且不发送邮件",
+      "method": "POST",
+      "path": "/api/user/send-register-code/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "student 个人资料及登录角色",
+      "method": "GET",
+      "path": "/api/user/me/profile/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "teacher 个人资料及登录角色",
+      "method": "GET",
+      "path": "/api/user/me/profile/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "admin 个人资料及登录角色",
+      "method": "GET",
+      "path": "/api/user/me/profile/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员搜索测试用户",
+      "method": "GET",
+      "path": "/api/admin/users/?search=qa_&page_size=100",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "教师读取自己发布的网页测试项目",
+      "method": "GET",
+      "path": "/api/event/teacher/events/?page_size=100",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "student 已发布知识库列表",
+      "method": "GET",
+      "path": "/api/file/templates/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "student 个人文件列表",
+      "method": "GET",
+      "path": "/api/file/my-files/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "student 消息列表",
+      "method": "GET",
+      "path": "/api/notification/my/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "teacher 已发布知识库列表",
+      "method": "GET",
+      "path": "/api/file/templates/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "teacher 个人文件列表",
+      "method": "GET",
+      "path": "/api/file/my-files/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "teacher 消息列表",
+      "method": "GET",
+      "path": "/api/notification/my/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "admin 已发布知识库列表",
+      "method": "GET",
+      "path": "/api/file/templates/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "admin 个人文件列表",
+      "method": "GET",
+      "path": "/api/file/my-files/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "admin 消息列表",
+      "method": "GET",
+      "path": "/api/notification/my/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "匿名访问个人资料被拒绝",
+      "method": "GET",
+      "path": "/api/user/me/profile/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "学生不得读取管理员列表",
+      "method": "GET",
+      "path": "/api/admin/users/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "学生不得发布项目",
+      "method": "POST",
+      "path": "/api/event/teacher/events/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "教师不得读取管理员列表",
+      "method": "GET",
+      "path": "/api/admin/users/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "教师不得读取学生申请入口",
+      "method": "GET",
+      "path": "/api/event/my-applications/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "学生选择教师身份被拒绝",
+      "method": "POST",
+      "path": "/api/user/login/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "无CSRF修改个人资料被拒绝",
+      "method": "PATCH",
+      "path": "/api/user/me/profile/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "资料修改不能自授管理员权限",
+      "method": "PATCH",
+      "path": "/api/user/me/profile/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生个人资料修改保存",
+      "method": "PATCH",
+      "path": "/api/user/me/profile/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "注册禁止管理员身份",
+      "method": "POST",
+      "path": "/api/user/register/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "重复学号不能注册",
+      "method": "POST",
+      "path": "/api/user/register/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "注册错误验证码被拒绝",
+      "method": "POST",
+      "path": "/api/user/register/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "管理员创建测试学生",
+      "method": "POST",
+      "path": "/api/admin/users/create/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "管理员用户详情",
+      "method": "GET",
+      "path": "/api/admin/users/6/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员修改学号",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "修改学号后使用新学号登录",
+      "method": "POST",
+      "path": "/api/user/login/",
+      "status": 400,
+      "pass": false,
+      "response": {
+        "detail": "Invalid student_id or password",
+        "error_code": "AUTH_001"
+      },
+      "resolution": {
+        "kind": "fixed",
+        "verified_by": "修复后使用新学号可以登录",
+        "current_outcome": "passed"
+      }
+    },
+    {
+      "name": "管理员不得设置过短密码",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": false,
+      "response": {
+        "id": 6,
+        "username": "qa_crud_1011",
+        "email": "qa-crud@ziqiangkexie.invalid",
+        "name": "【联调测试1011】用户增删测试",
+        "student_id": "qa_crud_renamed_1011",
+        "class_name": "联调测试班级",
+        "phone": "",
+        "wechat_id": "",
+        "bio": "",
+        "role": "student",
+        "avatar": null,
+        "avatar_url": null,
+        "is_active": true,
+        "date_joined": "2026-10-11T21:05:32.284571+08:00",
+        "events_count": 0,
+        "applications_count": 0
+      },
+      "resolution": {
+        "kind": "fixed",
+        "verified_by": "修复后管理员过短密码被拒绝",
+        "current_outcome": "passed"
+      }
+    },
+    {
+      "name": "恢复测试用户账号资料",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员禁止删除自身",
+      "method": "DELETE",
+      "path": "/api/admin/users/5/delete/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "管理员禁止修改自身角色",
+      "method": "PUT",
+      "path": "/api/admin/users/5/update/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "教师上传项目附件",
+      "method": "POST",
+      "path": "/api/file/uploads/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "学生上传申请简历",
+      "method": "POST",
+      "path": "/api/file/uploads/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "管理员上传知识库资料",
+      "method": "POST",
+      "path": "/api/file/uploads/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "不支持的扩展名被拒绝",
+      "method": "POST",
+      "path": "/api/file/uploads/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "无效文件分类被拒绝",
+      "method": "POST",
+      "path": "/api/file/uploads/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "匿名不能下载私有简历",
+      "method": "GET",
+      "path": "/api/file/uploads/30b1a0f8-222d-4f68-b2af-5d83d26501d4/download/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "其他教师不能下载私有简历",
+      "method": "GET",
+      "path": "/api/file/uploads/30b1a0f8-222d-4f68-b2af-5d83d26501d4/download/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "管理员可以读取私有简历",
+      "method": "GET",
+      "path": "/api/file/uploads/30b1a0f8-222d-4f68-b2af-5d83d26501d4/download/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "私有媒体直链不可访问",
+      "method": "GET",
+      "path": "/media/uploads/qa-test.zip",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "学生不能删除教师附件",
+      "method": "DELETE",
+      "path": "/api/file/uploads/cc8afcbf-565d-42fc-b99f-d86fd691548d/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "学生上传合法头像",
+      "method": "PUT",
+      "path": "/api/user/me/avatar/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "公开头像可读取",
+      "method": "GET",
+      "path": "/media/avatars/3.png",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "非法头像类型被拒绝",
+      "method": "PUT",
+      "path": "/api/user/me/avatar/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "开始和结束时间相同被拒绝",
+      "method": "POST",
+      "path": "/api/event/teacher/events/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "零人数被拒绝",
+      "method": "POST",
+      "path": "/api/event/teacher/events/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "错误分类附件不能绑定项目",
+      "method": "POST",
+      "path": "/api/event/teacher/events/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "教师创建完整草稿",
+      "method": "POST",
+      "path": "/api/event/teacher/events/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "匿名不得查看草稿",
+      "method": "GET",
+      "path": "/api/event/events/2/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "学生不得申请草稿",
+      "method": "POST",
+      "path": "/api/event/events/2/apply/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "教师修改草稿",
+      "method": "PATCH",
+      "path": "/api/event/teacher/events/2/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "发布草稿",
+      "method": "POST",
+      "path": "/api/event/teacher/events/2/publish/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "重复发布被拒绝",
+      "method": "POST",
+      "path": "/api/event/teacher/events/2/publish/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "公开项目详情",
+      "method": "GET",
+      "path": "/api/event/events/2/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生可下载已发布项目附件",
+      "method": "GET",
+      "path": "/api/file/uploads/cc8afcbf-565d-42fc-b99f-d86fd691548d/download/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "正在引用的附件不能删除",
+      "method": "DELETE",
+      "path": "/api/file/uploads/cc8afcbf-565d-42fc-b99f-d86fd691548d/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "学生提交申请和简历",
+      "method": "POST",
+      "path": "/api/event/events/2/apply/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "重复申请被拒绝",
+      "method": "POST",
+      "path": "/api/event/events/2/apply/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "我的申请详情",
+      "method": "GET",
+      "path": "/api/event/my-applications/1/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "发布者教师可下载申请简历",
+      "method": "GET",
+      "path": "/api/file/uploads/30b1a0f8-222d-4f68-b2af-5d83d26501d4/download/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "教师申请筛选",
+      "method": "GET",
+      "path": "/api/event/teacher/applications/?event=2&status=pending",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "教师通过申请",
+      "method": "POST",
+      "path": "/api/event/teacher/applications/1/approve/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "通过申请后人数为1",
+      "method": "GET",
+      "path": "/api/event/events/2/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "重复通过不增加人数",
+      "method": "POST",
+      "path": "/api/event/teacher/applications/1/approve/",
+      "status": 200,
+      "pass": false,
+      "response": {
+        "id": 1,
+        "event": 2,
+        "event_title": "【联调测试1011】API主项目",
+        "student": 3,
+        "student_name": "联调测试学生",
+        "student_id": "qa_student_1011",
+        "student_email": "qa-student-1011@ziqiangkexie.invalid",
+        "statement": "联调测试报名陈述",
+        "resume": {
+          "id": "30b1a0f8-222d-4f68-b2af-5d83d26501d4",
+          "original_name": "qa-api-resume.zip",
+          "category": "application_resume",
+          "content_type": "application/zip",
+          "file_size": 178,
+          "description": "",
+          "file_url": "/api/file/uploads/30b1a0f8-222d-4f68-b2af-5d83d26501d4/download/",
+          "is_referenced": true,
+          "can_delete": false,
+          "created_at": "2026-10-11T21:05:41.573356+08:00",
+          "updated_at": "2026-10-11T21:05:41.573377+08:00"
+        },
+        "status": "approved",
+        "review_note": "",
+        "reviewed_at": "2026-10-11T21:05:46.836574+08:00",
+        "created_at": "2026-10-11T21:05:45.644305+08:00",
+        "updated_at": "2026-10-11T21:05:46.836814+08:00"
+      },
+      "resolution": {
+        "kind": "expectation_corrected",
+        "verified_by": "重复通过为幂等操作",
+        "current_outcome": "passed"
+      }
+    },
+    {
+      "name": "不能将容量改为0",
+      "method": "PATCH",
+      "path": "/api/event/teacher/events/2/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "教师将通过申请改为拒绝",
+      "method": "POST",
+      "path": "/api/event/teacher/applications/1/reject/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "拒绝释放名额",
+      "method": "GET",
+      "path": "/api/event/events/2/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员再次通过申请",
+      "method": "POST",
+      "path": "/api/admin/applications/1/approve/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员申请详情分页筛选",
+      "method": "GET",
+      "path": "/api/admin/applications/?status=approved&page_size=1",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "重复通过为幂等操作",
+      "method": "POST",
+      "path": "/api/event/teacher/applications/1/approve/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "重复通过确实未增加人数",
+      "method": "GET",
+      "path": "/api/event/events/2/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员项目列表筛选",
+      "method": "GET",
+      "path": "/api/admin/events/?search=API主项目",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员错误教师身份被拒绝",
+      "method": "POST",
+      "path": "/api/admin/events/create/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "管理员修改项目",
+      "method": "PUT",
+      "path": "/api/admin/events/2/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "关闭项目",
+      "method": "POST",
+      "path": "/api/admin/events/2/close/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "关闭项目后不接受申请",
+      "method": "POST",
+      "path": "/api/event/events/2/apply/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "关闭项目后不可修改",
+      "method": "PATCH",
+      "path": "/api/event/teacher/events/2/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "关闭项目后不可改变审批",
+      "method": "POST",
+      "path": "/api/admin/applications/1/reject/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "公开历史项目仍可查看",
+      "method": "GET",
+      "path": "/api/event/events/2/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员发布知识库资料",
+      "method": "POST",
+      "path": "/api/file/admin/templates/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "学生知识库可见资料",
+      "method": "GET",
+      "path": "/api/file/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "教师下载知识库资料",
+      "method": "GET",
+      "path": "/api/file/uploads/e8d8096e-a924-41ce-b58e-d72e3b32277f/download/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生不能发布知识库资料",
+      "method": "POST",
+      "path": "/api/file/admin/templates/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "管理员编辑知识库资料",
+      "method": "PATCH",
+      "path": "/api/file/admin/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员停用知识库资料",
+      "method": "DELETE",
+      "path": "/api/file/admin/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": false,
+      "response": {
+        "key": "qa-api-knowledge-1011",
+        "name": "【联调测试1011】API资料已修改",
+        "description": "接口知识库测试",
+        "file": {
+          "id": "e8d8096e-a924-41ce-b58e-d72e3b32277f",
+          "original_name": "qa-api-template.zip",
+          "category": "template",
+          "content_type": "application/zip",
+          "file_size": 178,
+          "description": "",
+          "file_url": "/api/file/uploads/e8d8096e-a924-41ce-b58e-d72e3b32277f/download/",
+          "is_referenced": true,
+          "can_delete": false,
+          "created_at": "2026-10-11T21:05:41.754841+08:00",
+          "updated_at": "2026-10-11T21:05:41.754868+08:00"
+        },
+        "is_active": false,
+        "created_at": "2026-10-11T21:07:01.892238+08:00",
+        "updated_at": "2026-10-11T21:07:02.724046+08:00"
+      },
+      "resolution": {
+        "kind": "expectation_corrected",
+        "verified_by": "知识库停用返回资料状态",
+        "current_outcome": "passed"
+      }
+    },
+    {
+      "name": "停用资料不再对学生展示",
+      "method": "GET",
+      "path": "/api/file/templates/qa-api-knowledge-1011/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "停用后私有文件不再对教师开放",
+      "method": "GET",
+      "path": "/api/file/uploads/e8d8096e-a924-41ce-b58e-d72e3b32277f/download/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "管理员重新启用资料",
+      "method": "PATCH",
+      "path": "/api/file/admin/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "重新发布后教师可见",
+      "method": "GET",
+      "path": "/api/file/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员文件列表筛选",
+      "method": "GET",
+      "path": "/api/admin/files/?category=template",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "引用中的资料文件禁止删除",
+      "method": "DELETE",
+      "path": "/api/admin/files/e8d8096e-a924-41ce-b58e-d72e3b32277f/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "学生收到审核站内消息",
+      "method": "GET",
+      "path": "/api/notification/my/?is_read=false",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生消息详情",
+      "method": "GET",
+      "path": "/api/notification/my/6/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "其他教师不能读取学生通知",
+      "method": "GET",
+      "path": "/api/notification/my/6/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "标记单条消息已读",
+      "method": "POST",
+      "path": "/api/notification/my/6/read/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "标记全部消息已读",
+      "method": "POST",
+      "path": "/api/notification/my/read-all/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "消息已读后未读列表为空",
+      "method": "GET",
+      "path": "/api/notification/my/?is_read=false",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生修改旧密码错误被拒绝",
+      "method": "POST",
+      "path": "/api/user/change-password/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "学生修改密码不一致被拒绝",
+      "method": "POST",
+      "path": "/api/user/change-password/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "重复邮箱更换被拒绝且不发邮件",
+      "method": "POST",
+      "path": "/api/user/send-change-email-code/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "错误邮箱修改验证码被拒绝",
+      "method": "POST",
+      "path": "/api/user/change-email/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "教师创建已开始时间的草稿",
+      "method": "POST",
+      "path": "/api/event/teacher/events/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "教师发布进行中的项目",
+      "method": "POST",
+      "path": "/api/event/teacher/events/3/publish/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "开始后报名应与不可审核规则一致",
+      "method": "POST",
+      "path": "/api/event/events/3/apply/",
+      "status": 201,
+      "pass": false,
+      "response": {
+        "id": 2,
+        "event": 3,
+        "event_title": "【联调测试1011】进行中边界测试",
+        "student": 3,
+        "student_name": "联调测试学生",
+        "student_id": "qa_student_1011",
+        "student_email": "qa-student-1011@ziqiangkexie.invalid",
+        "statement": "进行中流程一致性测试",
+        "resume": null,
+        "status": "pending",
+        "review_note": "",
+        "reviewed_at": null,
+        "created_at": "2026-10-11T21:09:53.240120+08:00",
+        "updated_at": "2026-10-11T21:09:53.240140+08:00"
+      },
+      "resolution": {
+        "kind": "policy_updated",
+        "verified_by": "修复后教师审核进行中的新申请",
+        "current_outcome": "passed"
+      }
+    },
+    {
+      "name": "开始后确实无法审核申请",
+      "method": "POST",
+      "path": "/api/event/teacher/applications/2/approve/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "同一验证码并发注册只能成功一次",
+      "statuses": [
+        201,
+        201
+      ],
+      "pass": false,
+      "resolution": {
+        "kind": "fixed",
+        "verified_by": "修复后同一验证码并发注册只成功一次",
+        "current_outcome": "passed"
+      }
+    },
+    {
+      "name": "学生正确验证码修改邮箱",
+      "method": "POST",
+      "path": "/api/user/change-email/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "邮箱更改后资料持久化",
+      "method": "GET",
+      "path": "/api/user/me/profile/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "已用邮箱验证码不能重复使用",
+      "method": "POST",
+      "path": "/api/user/change-email/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "学生正确旧密码修改密码",
+      "method": "POST",
+      "path": "/api/user/change-password/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "密码修改后当前会话保留",
+      "method": "GET",
+      "path": "/api/user/me/profile/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "旧密码不能再登录",
+      "method": "POST",
+      "path": "/api/user/login/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "新密码可以登录",
+      "method": "POST",
+      "path": "/api/user/login/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "修复后公网服务正常",
+      "method": "GET",
+      "path": "/api/user/csrf/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "修复后管理员修改学号",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "修复后使用新学号可以登录",
+      "method": "POST",
+      "path": "/api/user/login/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "修复后管理员过短密码被拒绝",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "管理员恢复测试资料",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员禁用测试账号",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "禁用账号不能登录",
+      "method": "POST",
+      "path": "/api/user/login/",
+      "status": 429,
+      "pass": false,
+      "response": {
+        "detail": "Request was throttled. Expected available in 51 seconds."
+      },
+      "resolution": {
+        "kind": "throttled_then_retested",
+        "verified_by": "未受限流干扰时禁用账号不能登录",
+        "current_outcome": "passed"
+      }
+    },
+    {
+      "name": "管理员重新启用测试账号",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "修复后同一验证码并发注册只成功一次",
+      "statuses": [
+        400,
+        201
+      ],
+      "pass": true
+    },
+    {
+      "name": "修复后教师审核进行中的新申请",
+      "method": "POST",
+      "path": "/api/event/teacher/applications/2/approve/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "中途审核后学生显示已通过",
+      "method": "GET",
+      "path": "/api/event/my-applications/2/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "中途审核后正确占用一个名额",
+      "method": "GET",
+      "path": "/api/event/events/3/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "开始后已完成的决定不能再改",
+      "method": "POST",
+      "path": "/api/admin/applications/2/reject/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "管理员创建项目正常流程",
+      "method": "POST",
+      "path": "/api/admin/events/create/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "管理员发布进行中的项目",
+      "method": "POST",
+      "path": "/api/admin/events/4/publish/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生报名管理员进行中项目",
+      "method": "POST",
+      "path": "/api/event/events/4/apply/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "管理员拒绝进行中的新申请",
+      "method": "POST",
+      "path": "/api/admin/applications/4/reject/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "拒绝后不占名额",
+      "method": "GET",
+      "path": "/api/event/events/4/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生进行中被拒后可重新报名",
+      "method": "POST",
+      "path": "/api/event/events/4/apply/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "教师拒绝进行中的新申请",
+      "method": "POST",
+      "path": "/api/event/teacher/applications/5/reject/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员删除明确的测试项目",
+      "method": "DELETE",
+      "path": "/api/admin/events/4/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "删除测试项目后详情不存在",
+      "method": "GET",
+      "path": "/api/event/events/4/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "公开项目分页第二页真实可达",
+      "method": "GET",
+      "path": "/api/event/events/?page_size=1&page=2",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "知识库停用返回资料状态",
+      "method": "DELETE",
+      "path": "/api/file/admin/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "知识库重新启用",
+      "method": "PATCH",
+      "path": "/api/file/admin/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "复核禁用账号状态",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "未受限流干扰时禁用账号不能登录",
+      "method": "POST",
+      "path": "/api/user/login/",
+      "status": 400,
+      "pass": true
+    },
+    {
+      "name": "复核后重新启用",
+      "method": "PUT",
+      "path": "/api/admin/users/6/update/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "管理员网页创建发布后学生能查到项目",
+      "method": "GET",
+      "path": "/api/event/events/5/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生报名管理员网页项目供网页审核",
+      "method": "POST",
+      "path": "/api/event/events/5/apply/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "网页停用后学生不能获取资料",
+      "method": "GET",
+      "path": "/api/file/templates/qa-ui-knowledge-1011/",
+      "status": 404,
+      "pass": true
+    },
+    {
+      "name": "管理员网页审核结果持久化",
+      "method": "GET",
+      "path": "/api/event/my-applications/6/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "替换后的旧资料文件可正常删除",
+      "method": "DELETE",
+      "path": "/api/admin/files/885e2147-5b24-46fc-8276-4305800d35d2/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "进行中项目允许增加容量",
+      "method": "PATCH",
+      "path": "/api/event/teacher/events/3/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "第二名学生中途提交待审申请供网页验证",
+      "method": "POST",
+      "path": "/api/event/events/3/apply/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "公网最终部署健康检查",
+      "method": "GET",
+      "path": "/api/user/csrf/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "删除已通过的临时测试学生",
+      "method": "DELETE",
+      "path": "/api/admin/users/6/delete/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "删除已通过学生后释放一个名额",
+      "method": "GET",
+      "path": "/api/event/teacher/events/3/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "删除后保留其他学生的已通过申请",
+      "method": "GET",
+      "path": "/api/event/teacher/applications/?event=3",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "删除一次性注册并发测试账号 qa_racefix_2_1011",
+      "method": "DELETE",
+      "path": "/api/admin/users/9/delete/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "删除一次性注册并发测试账号 qa_race_2_1011",
+      "method": "DELETE",
+      "path": "/api/admin/users/7/delete/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "删除一次性注册并发测试账号 qa_race_1_1011",
+      "method": "DELETE",
+      "path": "/api/admin/users/8/delete/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "删除一次性进行中测试项目",
+      "method": "DELETE",
+      "path": "/api/admin/events/3/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "停用联调测试资料 qa-api-knowledge-1011",
+      "method": "DELETE",
+      "path": "/api/file/admin/templates/qa-api-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "停用联调测试资料 qa-ui-knowledge-1011",
+      "method": "DELETE",
+      "path": "/api/file/admin/templates/qa-ui-knowledge-1011/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "删除未引用的19MB上传测试文件 513d6755-4987-4fc7-a81b-7c4f88bf938d",
+      "method": "DELETE",
+      "path": "/api/admin/files/513d6755-4987-4fc7-a81b-7c4f88bf938d/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "删除未引用的19MB上传测试文件 5b6a9b68-fcd4-4f31-b1d0-59228d14a548",
+      "method": "DELETE",
+      "path": "/api/admin/files/5b6a9b68-fcd4-4f31-b1d0-59228d14a548/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "教师创建一次性删除测试草稿",
+      "method": "POST",
+      "path": "/api/event/teacher/events/",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "name": "教师正常删除自己的草稿",
+      "method": "DELETE",
+      "path": "/api/event/teacher/events/6/",
+      "status": 204,
+      "pass": true
+    },
+    {
+      "name": "最终测试项目均已关闭",
+      "method": "GET",
+      "path": "/api/admin/events/?page_size=100",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "最终所有测试资料已停用",
+      "method": "GET",
+      "path": "/api/file/admin/templates/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "学生退出登录成功",
+      "method": "POST",
+      "path": "/api/user/logout/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "退出后学生会话失效",
+      "method": "GET",
+      "path": "/api/user/me/profile/",
+      "status": 403,
+      "pass": true
+    },
+    {
+      "name": "管理员退出登录成功",
+      "method": "POST",
+      "path": "/api/admin/logout/",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "name": "退出后管理员会话失效",
+      "method": "GET",
+      "path": "/api/admin/dashboard/",
+      "status": 403,
+      "pass": true
+    }
+  ]
+}

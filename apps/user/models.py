@@ -37,6 +37,7 @@ class UserProfile(models.Model):
         default=ROLE_STUDENT,
     )
     avatar = models.ImageField("头像", upload_to=avatar_upload_to, blank=True)
+    can_switch_roles = models.BooleanField("允许切换身份", default=False)
 
     def __str__(self):
         return f"{self.name} ({self.student_id}) - {self.get_role_display()}"

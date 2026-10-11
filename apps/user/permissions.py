@@ -1,16 +1,14 @@
 from rest_framework import permissions
 
 from .models import UserProfile
+from .roles import get_active_role
 
 
 def _has_profile_role(request, *roles):
     if not request.user or not request.user.is_authenticated:
         return False
 
-    try:
-        return request.user.profile.has_role(*roles)
-    except AttributeError:
-        return False
+    return get_active_role(request) in roles
 
 
 class IsTeacher(permissions.BasePermission):

@@ -1,7 +1,7 @@
 import os
 
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.user.models import UserProfile
 
@@ -11,7 +11,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         username = os.getenv("ADMIN_USERNAME", "admin")
-        password = os.getenv("ADMIN_PASSWORD", "admin123456")
+        password = os.getenv("ADMIN_PASSWORD", "")
+        if len(password) < 12 or password.startswith('replace-with'):
+            raise CommandError('Set a strong ADMIN_PASSWORD of at least 12 characters before provisioning an administrator.')
         email = os.getenv("ADMIN_EMAIL", "admin@example.com")
 
         user, created = User.objects.update_or_create(

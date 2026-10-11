@@ -40,6 +40,8 @@ venv/
 ENV/
 env/
 .venv
+.venv313/
+.cache/
 
 # IDE
 .vscode/

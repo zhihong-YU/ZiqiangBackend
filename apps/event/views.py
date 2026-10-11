@@ -14,6 +14,7 @@ from apps.notification.services import (
 )
 from apps.user.models import UserProfile
 from apps.user.permissions import IsAdminOrTeacher, IsStudent
+from apps.user.roles import get_active_role
 
 from .models import Event, EventApplication
 from .serializers import (
@@ -134,7 +135,7 @@ class PublicEventDetailView(generics.RetrieveAPIView):
         user = self.request.user
         if user.is_authenticated and (
             event.teacher_id == user.id
-            or (hasattr(user, "profile") and user.profile.has_role(UserProfile.ROLE_ADMIN))
+            or (hasattr(user, "profile") and get_active_role(self.request) == UserProfile.ROLE_ADMIN)
         ):
             return event
 
@@ -146,7 +147,7 @@ class TeacherEventListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = get_event_queryset()
-        if self.request.user.profile.has_role(UserProfile.ROLE_ADMIN):
+        if get_active_role(self.request) == UserProfile.ROLE_ADMIN:
             return apply_event_filters(queryset, self.request)
         return apply_event_filters(queryset.filter(teacher=self.request.user), self.request)
 
@@ -172,7 +173,7 @@ class TeacherEventDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         queryset = get_event_queryset()
-        if self.request.user.profile.has_role(UserProfile.ROLE_ADMIN):
+        if get_active_role(self.request) == UserProfile.ROLE_ADMIN:
             return queryset
         return queryset.filter(teacher=self.request.user)
 
@@ -217,7 +218,7 @@ class PublishEventView(APIView):
 
     def _get_event(self, request, pk):
         queryset = get_event_queryset()
-        if not request.user.profile.has_role(UserProfile.ROLE_ADMIN):
+        if get_active_role(request) != UserProfile.ROLE_ADMIN:
             queryset = queryset.filter(teacher=request.user)
         return get_object_or_404(queryset, pk=pk)
 
@@ -236,7 +237,7 @@ class CloseEventView(APIView):
 
     def _get_event(self, request, pk):
         queryset = get_event_queryset()
-        if not request.user.profile.has_role(UserProfile.ROLE_ADMIN):
+        if get_active_role(request) != UserProfile.ROLE_ADMIN:
             queryset = queryset.filter(teacher=request.user)
         return get_object_or_404(queryset, pk=pk)
 
@@ -263,11 +264,15 @@ class StudentApplicationListCreateView(generics.ListCreateAPIView):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         if self.request.method == "POST":
-            context["event"] = self.get_event()
+            context["event"] = getattr(self, '_locked_event', None) or self.get_event()
         return context
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
-        event = self.get_event()
+        if 'event_pk' not in self.kwargs:
+            raise ValidationError('请通过项目详情提交申请。')
+        event = get_object_or_404(Event.objects.select_for_update(), pk=self.kwargs['event_pk'])
+        self._locked_event = event
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         application = EventApplication.objects.create(
@@ -321,7 +326,7 @@ class TeacherApplicationListView(generics.ListAPIView):
             "student",
             "student__profile",
         )
-        if self.request.user.profile.has_role(UserProfile.ROLE_ADMIN):
+        if get_active_role(self.request) == UserProfile.ROLE_ADMIN:
             return apply_application_filters(queryset, self.request)
         return apply_application_filters(queryset.filter(event__teacher=self.request.user), self.request)
 
@@ -332,6 +337,7 @@ class TeacherApplicationApproveView(APIView):
     @transaction.atomic
     def post(self, request, pk):
         application = self._get_application(request, pk)
+        application = lock_application_for_review(application)
         if not application.can_change_decision():
             raise ValidationError("This application cannot be approved.")
         if application.status == EventApplication.STATUS_CANCELLED:
@@ -371,7 +377,7 @@ class TeacherApplicationApproveView(APIView):
             "student",
             "student__profile",
         )
-        if not request.user.profile.has_role(UserProfile.ROLE_ADMIN):
+        if get_active_role(request) != UserProfile.ROLE_ADMIN:
             queryset = queryset.filter(event__teacher=request.user)
         return get_object_or_404(queryset, pk=pk)
 
@@ -382,6 +388,7 @@ class TeacherApplicationRejectView(APIView):
     @transaction.atomic
     def post(self, request, pk):
         application = self._get_application(request, pk)
+        application = lock_application_for_review(application)
         if not application.can_change_decision():
             raise ValidationError("This application cannot be rejected.")
         if application.status == EventApplication.STATUS_CANCELLED:
@@ -416,6 +423,14 @@ class TeacherApplicationRejectView(APIView):
             "student",
             "student__profile",
         )
-        if not request.user.profile.has_role(UserProfile.ROLE_ADMIN):
+        if get_active_role(request) != UserProfile.ROLE_ADMIN:
             queryset = queryset.filter(event__teacher=request.user)
         return get_object_or_404(queryset, pk=pk)
+
+
+def lock_application_for_review(application):
+    # Lock the shared capacity first so reviews of different applications serialize.
+    event = get_object_or_404(Event.objects.select_for_update(), pk=application.event_id)
+    application = get_object_or_404(EventApplication.objects.select_for_update(), pk=application.pk)
+    application.event = event
+    return application

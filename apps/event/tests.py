@@ -508,7 +508,7 @@ class EventAPITestCase(TestCase):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["event_title"], "项目二")
 
-    def test_teacher_cannot_change_application_after_ongoing(self):
+    def test_teacher_can_review_pending_application_after_ongoing(self):
         event = self.create_published_event(
             start_time=self.now - timedelta(hours=1),
             end_time=self.now + timedelta(days=1),
@@ -516,13 +516,22 @@ class EventAPITestCase(TestCase):
         application = EventApplication.objects.create(
             event=event,
             student=self.student,
-            statement="进行中不能再改",
+            statement="中途报名",
         )
         self.client.force_authenticate(user=self.teacher)
         response = self.client.post(
             f"/api/event/teacher/applications/{application.id}/approve/",
-            {"review_note": "太晚了"},
+            {"review_note": "允许加入"},
             format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        application.refresh_from_db()
+        event.refresh_from_db()
+        self.assertEqual(application.status, EventApplication.STATUS_APPROVED)
+        self.assertEqual(event.current_participants, 1)
+        # Existing decisions stay fixed once the project starts.
+        response = self.client.post(
+            f"/api/event/teacher/applications/{application.id}/reject/", {}, format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

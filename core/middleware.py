@@ -12,7 +12,7 @@ class ApiDebugLoggingMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        enabled = getattr(settings, "DEBUG_LOG_API", False)
+        enabled = settings.DEBUG and getattr(settings, "DEBUG_LOG_API", False)
 
         if enabled and request.path.startswith("/api/"):
             self._log_request(request)

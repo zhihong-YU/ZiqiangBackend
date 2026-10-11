@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.user.permissions import IsAdmin
+from apps.user.roles import get_active_role
 
 from .models import FileAuditLog, FileTemplate, ManagedFile
 from .serializers import (
@@ -16,15 +17,17 @@ from .serializers import (
 )
 
 
-def get_accessible_file_queryset(user):
+def get_accessible_file_queryset(user, request=None):
     queryset = ManagedFile.objects.all()
-    if user.profile.is_admin():
+    if (get_active_role(request) if request else user.profile.role) == 'admin':
         return queryset
 
     return queryset.filter(
         Q(uploaded_by=user)
         | Q(template_bindings__is_active=True)
         | Q(events_as_attachment__teacher=user)
+        | Q(events_as_attachment__status='published')
+        | Q(events_as_attachment__status='closed')
         | Q(applications_as_resume__student=user)
         | Q(applications_as_resume__event__teacher=user)
     ).distinct()
@@ -66,7 +69,7 @@ class ManagedFileListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = ManagedFile.objects.all() if user.profile.is_admin() else ManagedFile.objects.filter(uploaded_by=user)
+        queryset = ManagedFile.objects.all() if get_active_role(self.request) == 'admin' else ManagedFile.objects.filter(uploaded_by=user)
 
         category = self.request.query_params.get("category")
         if category:
@@ -81,11 +84,11 @@ class ManagedFileDetailView(generics.RetrieveDestroyAPIView):
     lookup_field = "id"
 
     def get_queryset(self):
-        return get_accessible_file_queryset(self.request.user)
+        return get_accessible_file_queryset(self.request.user, self.request)
 
     def perform_destroy(self, instance):
         user = self.request.user
-        if not user.profile.is_admin() and instance.uploaded_by_id != user.id:
+        if get_active_role(self.request) != 'admin' and instance.uploaded_by_id != user.id:
             raise NotFound("This file does not exist.")
         if not instance.can_delete():
             create_file_audit_log(
@@ -118,7 +121,7 @@ class ManagedFileDownloadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, id):
-        file_obj = get_accessible_file_queryset(request.user).filter(id=id).first()
+        file_obj = get_accessible_file_queryset(request.user, request).filter(id=id).first()
         if file_obj is None or not file_obj.file:
             raise NotFound("This file does not exist.")
 

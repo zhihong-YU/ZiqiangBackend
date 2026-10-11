@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db import transaction
 
 from apps.user.models import UserProfile
 from apps.event.models import Event, EventApplication
 from apps.file.models import ManagedFile
+from apps.event.serializers import EventWriteSerializer
 
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -50,9 +52,6 @@ class AdminUserListSerializer(serializers.ModelSerializer):
 
     def get_avatar_url(self, obj):
         if hasattr(obj, "profile") and obj.profile.avatar:
-            request = self.context.get("request")
-            if request:
-                return request.build_absolute_uri(obj.profile.avatar.url)
             return obj.profile.avatar.url
         return None
 
@@ -94,10 +93,11 @@ class AdminUserCreateSerializer(serializers.Serializer):
         return value
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+        if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("This email is already registered")
         return value
 
+    @transaction.atomic
     def create(self, validated_data):
         username = validated_data["username"]
         email = validated_data["email"]
@@ -128,7 +128,7 @@ class AdminUserCreateSerializer(serializers.Serializer):
 
 class AdminUserUpdateSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, required=False, allow_blank=True, default="")
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True, default="", min_length=6)
     name = serializers.CharField(max_length=20)
     student_id = serializers.CharField(max_length=20)
     class_name = serializers.CharField(max_length=50, required=False, allow_blank=True, default="")
@@ -148,10 +148,11 @@ class AdminUserUpdateSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         user = self.context["target_user"]
-        if User.objects.filter(email=value).exclude(pk=user.pk).exists():
+        if User.objects.filter(email__iexact=value).exclude(pk=user.pk).exists():
             raise serializers.ValidationError("This email is already in use")
         return value
 
+    @transaction.atomic
     def update(self, user, validated_data):
         password = validated_data.pop("password", "")
         role = validated_data.pop("role")
@@ -179,7 +180,7 @@ class AdminUserUpdateSerializer(serializers.Serializer):
         return user
 
 
-class AdminEventWriteSerializer(serializers.ModelSerializer):
+class AdminEventWriteSerializer(EventWriteSerializer):
     teacher_id = serializers.PrimaryKeyRelatedField(
         source="teacher",
         queryset=User.objects.all(),
@@ -206,13 +207,12 @@ class AdminEventWriteSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        start_time = attrs.get("start_time", getattr(self.instance, "start_time", None))
-        end_time = attrs.get("end_time", getattr(self.instance, "end_time", None))
+        return super().validate(attrs)
 
-        if start_time and end_time and start_time >= end_time:
-            raise serializers.ValidationError("End time must be later than start time.")
-
-        return attrs
+    def validate_teacher_id(self, value):
+        if not hasattr(value, 'profile') or not value.profile.has_role(UserProfile.ROLE_TEACHER, UserProfile.ROLE_ADMIN):
+            raise serializers.ValidationError('项目发布者必须是教师或管理员。')
+        return value
 
 
 class AdminApplicationReviewSerializer(serializers.Serializer):

@@ -142,4 +142,7 @@ class EventApplication(models.Model):
         return f"{self.student.username} -> {self.event.title} ({self.status})"
 
     def can_change_decision(self):
-        return self.event.can_accept_applications()
+        runtime_status = self.event.get_runtime_status()
+        return runtime_status == Event.STATUS_PUBLISHED or (
+            runtime_status == "ongoing" and self.status == self.STATUS_PENDING
+        )

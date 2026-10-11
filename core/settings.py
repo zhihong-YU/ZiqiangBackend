@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,6 +36,10 @@ DEBUG = os.getenv('DEBUG', str(default_debug)).lower() == 'true'
 
 allowed_hosts = os.getenv('DJANGO_ALLOWED_HOSTS', os.getenv('ALLOWED_HOSTS', '*'))
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',') if host.strip()]
+if not DEBUG and (SECRET_KEY.startswith('django-insecure-') or len(SECRET_KEY) < 50 or 'replace-with' in SECRET_KEY):
+    raise ImproperlyConfigured('Production requires a random DJANGO_SECRET_KEY of at least 50 characters.')
+if not DEBUG and ('*' in ALLOWED_HOSTS or not ALLOWED_HOSTS):
+    raise ImproperlyConfigured('Production requires explicit DJANGO_ALLOWED_HOSTS.')
 
 
 # Application definition
@@ -69,7 +74,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'core.pagination.StandardPagination',
     'PAGE_SIZE': 20,
     
     'DEFAULT_THROTTLE_CLASSES': [
@@ -124,9 +129,19 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.getenv('SQLITE_PATH', str(BASE_DIR / 'db.sqlite3')),
     }
 }
+if os.getenv('DB_ENGINE') == 'postgresql':
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 60,
+    }
 
 
 # Password validation
@@ -164,8 +179,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.getenv('MEDIA_ROOT', str(BASE_DIR / 'media')))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -183,6 +199,14 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@ziqiang.edu')
 ENABLE_NOTIFICATIONS = os.getenv('ENABLE_NOTIFICATIONS', 'False').lower() == 'true'
 DEBUG_LOG_API = os.getenv('DEBUG_LOG_API', 'False').lower() == 'true'
+EMAIL_TIMEOUT = 15
+
+# All Gunicorn workers share throttle counters. Tests use the in-memory cache.
+if not DEBUG:
+    CACHES = {'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / '.cache',
+    }}
 
 # CORS Configuration
 cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', '')
@@ -194,6 +218,8 @@ if DEBUG:
 # CSRF trusted origins
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(',') if o.strip()] if csrf_origins else []
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS += ['http://localhost:5173', 'http://127.0.0.1:5173']
 
 # Session Security Settings
 # Protects session cookie from being stolen
@@ -205,3 +231,11 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser closes
 CSRF_COOKIE_HTTPONLY = True  # CSRF token cookie also protected
 CSRF_COOKIE_SECURE = not DEBUG  # True in production (requires HTTPS)
 CSRF_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+
+# Gunicorn is reachable only through the trusted local Nginx proxy.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '3600' if not DEBUG else '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False

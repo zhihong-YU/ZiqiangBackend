@@ -1,6 +1,7 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -9,6 +10,8 @@ from django.middleware.csrf import get_token
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication
+from apps.user.throttles import LoginRateThrottle
 
 from core.error_codes import (
     APPLICATION_ONLY_PENDING,
@@ -23,8 +26,10 @@ from core.error_codes import (
 )
 
 from apps.user.models import UserProfile
+from apps.user.authentication import authenticate_login_id
 from apps.user.permissions import IsAdmin
 from apps.event.models import Event, EventApplication
+from apps.event.views import TeacherApplicationApproveView, TeacherApplicationRejectView
 from apps.event.serializers import EventApplicationSerializer, EventSerializer
 from apps.file.models import ManagedFile
 from apps.notification.services import (
@@ -48,8 +53,10 @@ class AdminLoginView(APIView):
     管理员登录 - 仅限 role=admin 的用户
     """
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
+        SessionAuthentication().enforce_csrf(request)
         serializer = AdminLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -57,7 +64,7 @@ class AdminLoginView(APIView):
         password = serializer.validated_data["password"]
         remember_me = serializer.validated_data.get("remember_me", False)
 
-        user = authenticate(request, username=student_id, password=password)
+        user = authenticate_login_id(request, student_id, password)
         if not user:
             return error_response(AUTH_INVALID_CREDENTIALS)
 
@@ -70,6 +77,7 @@ class AdminLoginView(APIView):
             return error_response(AUTH_NOT_ADMIN, status_code=status.HTTP_403_FORBIDDEN)
 
         login(request, user)
+        request.session['active_role'] = UserProfile.ROLE_ADMIN
 
         if remember_me:
             request.session.set_expiry(60 * 60 * 24 * 14)
@@ -80,7 +88,6 @@ class AdminLoginView(APIView):
             {
                 "detail": "Login successful",
                 "role": "admin",
-                "session_id": request.session.session_key,
             },
             status=status.HTTP_200_OK,
         )
@@ -245,13 +252,28 @@ class AdminUserUpdateView(APIView):
 class AdminUserDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
+    @transaction.atomic
     def delete(self, request, pk):
         target_user = get_object_or_404(User, pk=pk)
 
         if target_user == request.user:
             return error_response(USER_CANNOT_DELETE_SELF)
 
+        # Match the event lock order used by application review before cascading
+        # the account's applications, so approval cannot race slot release.
+        event_ids = target_user.event_applications.values_list('event_id', flat=True)
+        events = list(Event.objects.select_for_update().filter(pk__in=event_ids).order_by('pk'))
+        accepted_counts = dict(target_user.event_applications.filter(status=EventApplication.STATUS_APPROVED)
+                               .values('event_id').annotate(total=Count('pk'))
+                               .values_list('event_id', 'total'))
         target_user.delete()
+        for event in events:
+            released = accepted_counts.get(event.pk, 0)
+            if released:
+                Event.objects.filter(pk=event.pk).update(
+                    current_participants=max(0, event.current_participants - released),
+                    updated_at=timezone.now(),
+                )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -329,7 +351,7 @@ class AdminEventCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
     def post(self, request):
-        serializer = AdminEventWriteSerializer(data=request.data)
+        serializer = AdminEventWriteSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         event = serializer.save(status=Event.STATUS_DRAFT)
 
@@ -344,7 +366,7 @@ class AdminEventUpdateView(APIView):
 
     def put(self, request, pk):
         event = get_object_or_404(Event, pk=pk)
-        serializer = AdminEventWriteSerializer(event, data=request.data)
+        serializer = AdminEventWriteSerializer(event, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         event = serializer.save()
 
@@ -426,73 +448,12 @@ class AdminApplicationListView(generics.ListAPIView):
         return qs.order_by("-created_at")
 
 
-class AdminApplicationApproveView(APIView):
+class AdminApplicationApproveView(TeacherApplicationApproveView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
-    def post(self, request, pk):
-        application = get_object_or_404(
-            EventApplication.objects.select_related("event", "student"), pk=pk
-        )
 
-        if application.status != EventApplication.STATUS_PENDING:
-            return error_response(APPLICATION_ONLY_PENDING)
-
-        serializer = AdminApplicationReviewSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        review_note = serializer.validated_data.get("review_note", "")
-
-        application.status = EventApplication.STATUS_APPROVED
-        application.review_note = review_note
-        application.reviewed_at = timezone.now()
-        application.save()
-
-        application.event.current_participants += 1
-        application.event.save(update_fields=["current_participants"])
-
-        notify_event_application_reviewed(
-            student=application.student,
-            event=application.event,
-            application=application,
-            approved=True,
-        )
-
-        return Response(
-            {"detail": "Application approved"},
-            status=status.HTTP_200_OK,
-        )
-
-
-class AdminApplicationRejectView(APIView):
+class AdminApplicationRejectView(TeacherApplicationRejectView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
-
-    def post(self, request, pk):
-        application = get_object_or_404(
-            EventApplication.objects.select_related("event", "student"), pk=pk
-        )
-
-        if application.status != EventApplication.STATUS_PENDING:
-            return error_response(APPLICATION_ONLY_PENDING)
-
-        serializer = AdminApplicationReviewSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        review_note = serializer.validated_data.get("review_note", "")
-
-        application.status = EventApplication.STATUS_REJECTED
-        application.review_note = review_note
-        application.reviewed_at = timezone.now()
-        application.save()
-
-        notify_event_application_reviewed(
-            student=application.student,
-            event=application.event,
-            application=application,
-            approved=False,
-        )
-
-        return Response(
-            {"detail": "Application rejected"},
-            status=status.HTTP_200_OK,
-        )
 
 
 class AdminFileListView(generics.ListAPIView):

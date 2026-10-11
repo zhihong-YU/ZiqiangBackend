@@ -49,12 +49,9 @@ class ManagedFileSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_file_url(self, obj):
-        request = self.context.get("request")
         if not obj.file:
             return ""
         url = reverse("file-download", kwargs={"id": obj.id})
-        if request is not None:
-            return request.build_absolute_uri(url)
         return url
 
     def get_is_referenced(self, obj):
@@ -136,7 +133,7 @@ class FileTemplateWriteSerializer(serializers.ModelSerializer):
             "is_active",
         ]
 
-    def validate_file(self, value):
+    def validate_file_id(self, value):
         if value.category != ManagedFile.CATEGORY_TEMPLATE:
             raise serializers.ValidationError("Template file must use category 'template'.")
         return value

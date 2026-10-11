@@ -1,22 +1,9 @@
-# Django and DRF
-Django==4.2.26
-djangorestframework
-djangorestframework-simplejwt
-
-# Email and utilities
-python-dotenv
-django-cors-headers
-Pillow
-
-# Database (included with Django)
-# SQLite3 is built-in
-
-# Production deployment
-gunicorn
-# psycopg2-binary==2.9.9  # PostgreSQL adapter (改用 PostgreSQL 时取消注释)
-
-# Development dependencies (optional)
-# pytest==7.4.3
-# pytest-django==4.7.0
-# black==23.12.1
-# flake8==6.1.0
+# Python 3.12 or 3.13; tested on Python 3.13
+Django==5.2.18
+djangorestframework==3.18.3
+djangorestframework-simplejwt==5.5.1
+python-dotenv==1.2.4
+django-cors-headers==4.9.0
+Pillow==12.3.0
+gunicorn==26.2.0
+psycopg[binary]==3.3.6
