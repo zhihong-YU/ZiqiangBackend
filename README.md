@@ -1,6 +1,6 @@
 # 自强科协网站后端
 
-Django / Django REST Framework 提供账号、项目报名审批、文件资料、通知和管理员 API。前端仓库：[ZiqiangFront](https://github.com/honghuwu/ZiqiangFront)。正式网站：https://ziqiangkexie.cn/；管理员独立登录 `/admin/login`。
+Django / Django REST Framework 提供账号、项目报名审批、文件资料、通知和管理员 API。前端仓库：[ZiqiangFront](https://github.com/zhihong-YU/ZiqiangFront)。正式网站：https://ziqiangkexie.cn/；管理员独立登录 `/admin/login`。
 
 ## 维护文档
 
